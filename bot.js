@@ -75,7 +75,7 @@ const Commands = {
 
 // Client ready event
 client.on('ready', () => {
-  console.log('Sheeeshhhhhhhhhhhh');
+  console.log('we started');
 });
 
 // Message event listener
