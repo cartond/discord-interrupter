@@ -28,20 +28,26 @@ let onOff = true;
 // Bot commands
 const Commands = {
   'target': {
-    help: 'Set the person that Leeroy will target. Usage: leeroy!target @Jenkins . Must @ (mention) a valid user.',
+    help: 'Set the person that Leeroy will target. Usage: `leeroy!target @Jenkins` Or, their member ID: `leeroy!target 1234567890.',
     execute: async (message) => {
-      // TODO: Allow for user IDs to avoid the "@" of them
-      // if (message.content.length === 1 && parseInt(message.content) == message.content){
-      //   target = parseInt(message.content);
-      // }
-      if (message.mentions.users.size < 1) {
-        message.reply('Must mention a valid user.');
-      } else {
+      const message_content_split = message.content.split(' '); // Split the command and the argument
+      if (message_content_split.length < 2) {
+        message.reply('Please provide a user ID or mention a user.');
+        return;
+      }
+      // Extract user ID from mention or direct input -- Remove all non-digit characters from the argument
+      let userId = message_content_split[1].replace(/\D/g, '');
+
+      if (message.mentions.users.size === 1) {
+        console.log('Memeber was @\'d');
         target = message.mentions.users.first().id;
         checkForUserInVoice();
-        if (!target) {
-          message.reply('Please provide a valid user.');
-        }
+      } else if (userId) {
+        console.log('Memeber was identified by ID');
+        target = userId;
+        checkForUserInVoice();
+      } else {
+        message.reply('Must mention a valid user.');
       }
     }
   },
@@ -188,6 +194,7 @@ const checkForUserInVoice = () => {
   console.log('voiceChannels: ',voiceChannels)
   for (const channels of voiceChannels) {
     for (const channel of channels.values()) {
+      console.log('channel members: ',channel.members)
       if (channel.members.has(target)) {
         channel.join().then(connection => {
           voiceConnection = connection;
