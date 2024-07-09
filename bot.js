@@ -30,6 +30,10 @@ const Commands = {
   'target': {
     help: 'Set the person that Leeroy will target. Usage: leeroy!target @Jenkins . Must @ (mention) a valid user.',
     execute: async (message) => {
+      // TODO: Allow for user IDs to avoid the "@" of them
+      // if (message.content.length === 1 && parseInt(message.content) == message.content){
+      //   target = parseInt(message.content);
+      // }
       if (message.mentions.users.size < 1) {
         message.reply('Must mention a valid user.');
       } else {
@@ -95,6 +99,8 @@ client.on('messageCreate', (message) => {
 // TODO: when a user is already in a channel and they are targeted afterwards,
 //  The bot doesn't join the channel (Even if they move channels)
 //  They have to disconnect (leave the channel) and then connect again
+// TODO: when a user leaves channel while being interupted, it breaks
+// TODO: on bot start and target set, scan all channels to see if they are in one already
 client.on('voiceStateUpdate', async (oldState, newState) => {
   if (oldState.member.id === target && newState.member.id === target && onOff) {
     try {
@@ -111,15 +117,19 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         // connection.subscribe(audioPlayer);
         
         connection.receiver.speaking.on('start', (userId) => {
-          console.log(`User ${userId} has started speaking`);
-          isTalking = true;
-          play(voiceConnection);
+          if (userId == target ){
+            console.log(`User ${userId} has started speaking`);
+            isTalking = true;
+            play(voiceConnection);
+          }
         })
         
         connection.receiver.speaking.on('end', (userId) => {
-          console.log(`User ${userId} has stopped speaking.`);
-          isTalking = false;
-          stop(voiceConnection);
+          if (userId == target ){
+            console.log(`User ${userId} has stopped speaking.`);
+            isTalking = false;
+            stop(voiceConnection);
+          }
         });
         
       } else if (oldState.channelId && !newState.channel) {
@@ -175,7 +185,7 @@ const stop =  async (connection) => {
 // Function to check if target user is in voice channel
 const checkForUserInVoice = () => {
   const voiceChannels = client.guilds.cache.map(guild => guild.channels.cache.filter(c => c.type === 'GUILD_VOICE'));
-  console.log(voiceChannels)
+  console.log('voiceChannels: ',voiceChannels)
   for (const channels of voiceChannels) {
     for (const channel of channels.values()) {
       if (channel.members.has(target)) {
